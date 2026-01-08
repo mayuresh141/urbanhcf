@@ -1,0 +1,15 @@
+{
+    "mcpServers":{
+        "geocode": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        "mcp[cli]",
+        "mcp",
+        "run",
+        "server//geocode.py"
+      ]
+    }
+}
+}

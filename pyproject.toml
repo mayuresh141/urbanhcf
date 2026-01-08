@@ -1,0 +1,19 @@
+[project]
+name = "urban-hcf"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "anthropic>=0.75.0",
+    "joblib>=1.5.3",
+    "langchain-groq>=1.1.1",
+    "lightgbm==4.5.0",
+    "mcp-use>=1.5.1",
+    "mcp[cli]>=1.25.0",
+    "pandas>=2.3.3",
+    "pyproj>=3.7.2",
+    "python-dotenv>=1.2.1",
+    "rasterio>=1.4.4",
+    "requests>=2.32.5",
+]
