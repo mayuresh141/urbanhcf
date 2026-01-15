@@ -10,7 +10,7 @@ def apply_counterfactuals(data:np.ndarray, feature_name: str, change_value: dict
         feature_map: dict mapping feature_name -> index
         feature_name: feature to modify
         change_value: {
-            "type": "set" | "add" | "multiply",
+            "type": "divide" | "multiply",
             "value": float
         }
 
@@ -48,11 +48,9 @@ def apply_counterfactuals(data:np.ndarray, feature_name: str, change_value: dict
 
     feature_slice = new_data[feature_idx, :, :]
 
-    if cf_type == "set":
-        new_data[feature_idx, :, :] = value
 
-    elif cf_type == "add":
-        new_data[feature_idx, :, :] = feature_slice + value
+    if cf_type == "divide":
+        new_data[feature_idx, :, :] = feature_slice / value
 
     elif cf_type == "multiply":
         new_data[feature_idx, :, :] = feature_slice * value
