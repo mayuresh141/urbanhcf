@@ -10,7 +10,7 @@ import pickle
 import uuid
 from redis_client import redis_client
 from mcp_service import UrbanHCFMCPService
-from geojson_utils import ndarrays_to_geojson, format_backend_response
+from backend.app.geojson_utils import ndarrays_to_geojson, format_backend_response
 
 app = FastAPI()
 mcp_service = UrbanHCFMCPService()
