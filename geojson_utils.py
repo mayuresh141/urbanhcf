@@ -2,30 +2,21 @@ import numpy as np
 from shapely.geometry import box, mapping
 
 def ndarrays_to_geojson(data_dict):
-    """
-    Convert LST/UHI ndarrays and bounding box to GeoJSON FeatureCollection.
-    
-    Args:
-        data_dict (dict): {
-            "lst": ndarray (H, W),
-            "uhi": ndarray (H, W),
-            "counterfactual_uhi": ndarray (H, W) or None,
-            "delta_uhi": ndarray (H, W) or None,
-            "bbox": [min_lon, min_lat, max_lon, max_lat]
-        }
-    
-    Returns:
-        geojson (dict): GeoJSON FeatureCollection
-    """
-    lst = data_dict.get("lst")
-    uhi = data_dict.get("uhi")
-    counterfactual_uhi = data_dict.get("counterfactual_uhi")
+    import numpy as np
+    from shapely.geometry import box, mapping
+
+    lst = np.array(data_dict.get("lst"))
+    uhi = np.array(data_dict.get("uhi"))
+    counterfactual_uhi = data_dict.get("ndcounterfactual_uhi")
+    if counterfactual_uhi is not None:
+        counterfactual_uhi = np.array(counterfactual_uhi)
     delta_uhi = data_dict.get("delta_uhi")
-    bbox = data_dict.get("bbox")  # [min_lon, min_lat, max_lon, max_lat]
+    if delta_uhi is not None:
+        delta_uhi = np.array(delta_uhi)
+    bbox = data_dict.get("bbox")
 
     H, W = lst.shape
     min_lon, min_lat, max_lon, max_lat = bbox
-
     lon_step = (max_lon - min_lon) / W
     lat_step = (max_lat - min_lat) / H
 
@@ -52,25 +43,21 @@ def ndarrays_to_geojson(data_dict):
             }
             features.append(feature)
 
-    geojson = {
+    return {
         "type": "FeatureCollection",
         "features": features
     }
 
-    return geojson
-
-def format_backend_response(geojson_fc, text_output):
+def format_backend_response(geojson_fc):
     """
     geojson_fc: FeatureCollection returned by ndarrays_to_geojson
     """
 
     if not isinstance(geojson_fc, dict) or geojson_fc.get("type") != "FeatureCollection":
         return {
-            "geojson": None,
-            "text": text_output or None
+            "geojson": None
         }
     
     return {
-        "geojson": geojson_fc,
-        "text": text_output or None
+        "geojson": geojson_fc
     }

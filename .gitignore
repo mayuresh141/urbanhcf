@@ -1,0 +1,5 @@
+/weather
+urbanhcf_venv/
+uv.lock
+dump.rdb
+.env

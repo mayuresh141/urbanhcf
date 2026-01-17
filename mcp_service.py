@@ -20,11 +20,12 @@ class UrbanHCFMCPService:
             memory_enabled=True,
         )
 
-    async def run_query(self, query: str):
+    async def run_query(self, query: str, run_id: str):
         """
         Run a single MCP query (used by FastAPI)
         """
-        response = await self.agent.run(query)
+    
+        response = await self.agent.run(f"{query} [run_id={run_id}]")
         return response
 
     async def shutdown(self):

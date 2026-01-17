@@ -14,7 +14,9 @@ import numpy as np
 import pandas as pd
 import os
 import json
+import pickle
 import shutil
+from redis_client import redis_client
 # Initialize FastMCP server
 mcp = FastMCP("geocode")    
 model = lgb.Booster(model_file="models/lst_model.txt")
@@ -149,7 +151,6 @@ def get_feature_info(lat: float, lon: float) -> Any:
 
         # Read only the bbox region
         data = src.read(window=window)
-        print(data.shape)
         feature_info = {
         'NDVI': float(np.nanmean(data[0])),
         'EVI': float(np.nanmean(data[1])),
@@ -197,19 +198,20 @@ def save_numpy(path: str, array):
     np.save(path, array)
 
 @mcp.tool()
-def analyze_uhi_effect(lat: float, lon: float, feature_name: str='none', change_value: dict=None, cf_data:bool=False, temp_data_path="runtime") -> dict:
+def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='none', change_value: dict=None, cf_data:bool=False) -> dict:
     """
-    This is the final tool, any valid resut should be returned, no further calling needed.
+    This is the final tool, any valid result should be returned, no further calling needed.
     This tool is used to calculate the Urban Heat Island(UHI) effect
     by running a baseline and counterfactual LST prediction based on
     modifying a specific feature at the given latitude and longitude.
     This will return the UHI data for that region. If no feature name to
     modify is provided, it will only return the baseline UHI data and cf_data will be False.
-    For eg: if feature name an dchange_value is None, then only cf_data=False
+    For eg: if feature name and change_value is None, then only cf_data= and change_value is None.
     
     :param lat: latitude of the location
     :param lon: longitude of the location
     :param feature_name: name of the feature to modify
+    :param run_id: run id of the the job started .
     change_value: None or {
             "type": "divide | "multiply",
             "value": percentage of change (e.g., 1.2 for 20% increase)
@@ -238,25 +240,38 @@ def analyze_uhi_effect(lat: float, lon: float, feature_name: str='none', change_
         uhi_cf = None
         delta_uhi = None
     
-    os.makedirs(temp_data_path, exist_ok=True)
-    save_numpy(f"{temp_data_path}/lst.npy", lst_base['data'])
-    save_numpy(f"{temp_data_path}/uhi.npy", uhi_base)
-    save_numpy(f"{temp_data_path}/counterfactual_uhi.npy", uhi_cf)
-    save_numpy(f"{temp_data_path}/delta_uhi.npy", delta_uhi)
+    payload = {
+    "lst": lst_base['data'].tolist(),      # convert numpy arrays to lists
+    "uhi": uhi_base.tolist(),
+    "counterfactual_uhi": uhi_cf.tolist() if uhi_cf is not None else None,
+    "delta_uhi": delta_uhi.tolist() if delta_uhi is not None else None,      # scalar, ok
+    "bbox": bbox                           # dict, ok
+}
+    redis_client.setex(
+        f"uhi:{run_id}",
+        900,  # TTL = 15 minutes
+        json.dumps(payload)
+    )
 
-    with open(f"{temp_data_path}/meta.json", "w") as f:
-        data = {
-        "lat": lat,
-        "lon": lon,
-        "bbox": bbox,
-        "feature_name": feature_name,
-        "change_value": change_value,
-        "has_counterfactual": cf_data,
-        "shapes": {
-            "lst": lst_base['data'].shape,
-            "uhi": uhi_base.shape
-        }}
-        json.dump(data, f, indent=2)
+    # os.makedirs(temp_data_path, exist_ok=True)
+    # save_numpy(f"{temp_data_path}/lst.npy", lst_base['data'])
+    # save_numpy(f"{temp_data_path}/uhi.npy", uhi_base)
+    # save_numpy(f"{temp_data_path}/counterfactual_uhi.npy", uhi_cf)
+    # save_numpy(f"{temp_data_path}/delta_uhi.npy", delta_uhi)
+
+    # with open(f"{temp_data_path}/meta.json", "w") as f:
+    #     data = {
+    #     "lat": lat,
+    #     "lon": lon,
+    #     "bbox": bbox,
+    #     "feature_name": feature_name,
+    #     "change_value": change_value,
+    #     "has_counterfactual": cf_data,
+    #     "shapes": {
+    #         "lst": lst_base['data'].shape,
+    #         "uhi": uhi_base.shape
+    #     }}
+    #     json.dump(data, f, indent=2)
         
     return {
         "geojson": {

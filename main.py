@@ -6,6 +6,9 @@ import json
 import os
 import numpy as np
 import shutil
+import pickle
+import uuid
+from redis_client import redis_client
 from mcp_service import UrbanHCFMCPService
 from geojson_utils import ndarrays_to_geojson, format_backend_response
 
@@ -29,7 +32,7 @@ def health():
 @app.get("/debug/mcp")
 async def debug_mcp():
     try:
-       agent_result = await mcp_service.run_query("what are lat lon irvine?")
+       agent_result = await mcp_service.run_query("what are lat lon irvine?", "")
        return {"result": agent_result}
     except Exception as e:
         return {"error": str(e)}
@@ -39,29 +42,38 @@ async def analyze(request: QueryRequest):
     """
     Frontend → MCP → GeoJSON
     """
-    artifact_dir = "runtime/"
-    # if os.path.exists(artifact_dir):
-    #     shutil.rmtree(artifact_dir)
-    # os.makedirs(artifact_dir, exist_ok=True)
-    agent_result = await mcp_service.run_query(request.query)
-    lst = np.load(f"{artifact_dir}lst.npy")
-    uhi = np.load(f"{artifact_dir}uhi.npy")
-    counterfactual_uhi = np.load(f"{artifact_dir}counterfactual_uhi.npy")
-    delta = np.load(f"{artifact_dir}delta_uhi.npy")
+    run_id = str(uuid.uuid4())
+    agent_result = await mcp_service.run_query(request.query, run_id)
+    
+    return {"run_id": run_id, "analysis": agent_result}
 
-    with open(os.path.join(artifact_dir, "meta.json")) as f:
-        meta = json.load(f)
-    geojson_result = ndarrays_to_geojson({
-        "lst": lst,
-        "uhi": uhi,
-        "counterfactual_uhi": counterfactual_uhi,
-        "delta_uhi": delta,
-        "bbox": meta['bbox'] 
-    })
-    response = format_backend_response(geojson_result, agent_result)
-    if os.path.exists(artifact_dir) and os.path.isdir(artifact_dir):
-        shutil.rmtree(artifact_dir)
-    return response
+@app.get("/results/{run_id}")
+def get_results(run_id: str):
+    try:
+        payload_str = redis_client.get(f"uhi:{run_id}")
+        payload = json.loads(payload_str)
+        print(payload.keys())
+        lst = payload['lst']
+        uhi = payload['uhi']
+        counterfactual_uhi = payload['counterfactual_uhi']
+        delta = payload['delta_uhi']
+        bbox = payload['bbox']
+        # with open(os.path.join(artifact_dir, "meta.json")) as f:
+        #     meta = json.load(f)
+        geojson_result = ndarrays_to_geojson({
+            "lst": lst,
+            "uhi": uhi,
+            "counterfactual_uhi": counterfactual_uhi,
+            "delta_uhi": delta,
+            "bbox": bbox 
+        })
+        response = format_backend_response(geojson_result)
+        return response
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in /results/{run_id}: {e}")
+        # Return a safe error to frontend
+        return {"status": "error", "message": str(e)}
 
 @app.on_event("shutdown")
 async def shutdown_event():
