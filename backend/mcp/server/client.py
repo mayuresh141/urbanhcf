@@ -13,7 +13,7 @@ async def run_memory_chat():
     os.environ["GROQ_API_KEY"]=os.getenv("GROQ_API_KEY")
 
     # Config file path - change this to your config file
-    config_file = "server/geocode.json"
+    config_file = "backend/mcp/server/geocode.json"
 
     print("Initializing chat...")
 

@@ -9,17 +9,17 @@ from mcp.server.fastmcp import FastMCP
 from pyproj import Transformer
 import math
 import lightgbm as lgb
-from agents.counterfactual import apply_counterfactuals
+from backend.mcp.agents.counterfactual import apply_counterfactuals
 import numpy as np
 import pandas as pd
 import os
 import json
 import pickle
 import shutil
-from redis_client import redis_client
+from backend.app.redis_client import redis_client
 # Initialize FastMCP server
 mcp = FastMCP("geocode")    
-model = lgb.Booster(model_file="models/lst_model.txt")
+model = lgb.Booster(model_file="backend/models/lst_model.txt")
 
 
 def bbox_from_point(lat, lon, buffer_km=5):
@@ -137,7 +137,7 @@ def bbox_from_latlon(lat: float, lon: float, buffer_km: float = 5) -> Any:
 @mcp.tool()
 def get_feature_info(lat: float, lon: float) -> Any:
     # Example feature info retrieval (mocked for demonstration)
-    tif_path = "data/LA_NDVI_SPH_2022_2023.tif"
+    tif_path = "backend/data/LA_NDVI_SPH_2022_2023.tif"
     bbox_dict = bbox_from_latlon(lat, lon)
     bbox = bbox_dict['coordinates']
     with rasterio.open(tif_path) as src:
@@ -227,7 +227,7 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='n
         "bbox" : list(floats)
     """
     bands_info, features_data, bbox = get_feature_info(lat, lon)
-    urb_mask_path = "data/Rural_mask_4326.tif"
+    urb_mask_path = "backend/data/Rural_mask_4326.tif"
 
     lst_base = run_lst_model(features_data, bands_info)
     uhi_base = compute_uhi(lst_base['data'], urb_mask_path, bbox)
@@ -252,26 +252,6 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='n
         900,  # TTL = 15 minutes
         json.dumps(payload)
     )
-
-    # os.makedirs(temp_data_path, exist_ok=True)
-    # save_numpy(f"{temp_data_path}/lst.npy", lst_base['data'])
-    # save_numpy(f"{temp_data_path}/uhi.npy", uhi_base)
-    # save_numpy(f"{temp_data_path}/counterfactual_uhi.npy", uhi_cf)
-    # save_numpy(f"{temp_data_path}/delta_uhi.npy", delta_uhi)
-
-    # with open(f"{temp_data_path}/meta.json", "w") as f:
-    #     data = {
-    #     "lat": lat,
-    #     "lon": lon,
-    #     "bbox": bbox,
-    #     "feature_name": feature_name,
-    #     "change_value": change_value,
-    #     "has_counterfactual": cf_data,
-    #     "shapes": {
-    #         "lst": lst_base['data'].shape,
-    #         "uhi": uhi_base.shape
-    #     }}
-    #     json.dump(data, f, indent=2)
         
     return {
         "geojson": {
