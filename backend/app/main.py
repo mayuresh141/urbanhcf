@@ -8,8 +8,8 @@ import numpy as np
 import shutil
 import pickle
 import uuid
-from redis_client import redis_client
-from mcp_service import UrbanHCFMCPService
+from backend.app.redis_client import redis_client
+from backend.mcp.mcp_service import UrbanHCFMCPService
 from backend.app.geojson_utils import ndarrays_to_geojson, format_backend_response
 
 app = FastAPI()
