@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function QueryBox({ onResult }) {
   const [query, setQuery] = useState("");
@@ -13,8 +14,8 @@ export default function QueryBox({ onResult }) {
 
     try {
       const res = await axios.post("http://localhost:8000/analyze", {
-        query,
-      });
+                  query,
+                });
 
       // NEW: only pass run_id + text_output
       onResult({

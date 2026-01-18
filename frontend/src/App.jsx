@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import QueryBox from "./components/query_box";
 import MapView from "./components/map_view";
 import sampleGeoJSON from "./data/sample_uhi.json";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function App() {
   const [runId, setRunId] = useState(null);
@@ -35,7 +36,7 @@ export default function App() {
 
     const fetchGeoJSON = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/results/${runId}`);
+        const res = await fetch(`${API_BASE}/results/${runId}`);
         if (!res.ok) return;
 
         const data = await res.json();
