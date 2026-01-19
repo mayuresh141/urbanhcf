@@ -11,10 +11,10 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import base64
 from io import BytesIO
-from backend.mcp.server.geocode import compute_uhi, load_urban_mask, compute_urban_mean_lst, get_feature_info, analyze_uhi_effect
-from backend.mcp.agents.counterfactual import apply_counterfactuals
+from mcp.server.geocode import compute_uhi, load_urban_mask, compute_urban_mean_lst, get_feature_info, analyze_uhi_effect
+from mcp.agents.counterfactual import apply_counterfactuals
 
-model = lgb.Booster(model_file="backend/models/lst_model.txt")
+model = lgb.Booster(model_file="models/lst_model.txt")
 
 def compute_uhi(lst_preds, urban_mask):
     urban_mean = compute_urban_mean_lst(lst_preds, urban_mask)

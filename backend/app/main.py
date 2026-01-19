@@ -8,16 +8,16 @@ import numpy as np
 import shutil
 import pickle
 import uuid
-from backend.app.redis_client import redis_client
-from backend.mcp.mcp_service import UrbanHCFMCPService
-from backend.app.geojson_utils import ndarrays_to_geojson, format_backend_response
+from app.redis_client import redis_client
+from mcp.mcp_service import UrbanHCFMCPService
+from app.geojson_utils import ndarrays_to_geojson, format_backend_response
 
 app = FastAPI()
 mcp_service = UrbanHCFMCPService()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "https://urbanhcf.netlify.app/"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -58,8 +58,7 @@ def get_results(run_id: str):
         counterfactual_uhi = payload['counterfactual_uhi']
         delta = payload['delta_uhi']
         bbox = payload['bbox']
-        # with open(os.path.join(artifact_dir, "meta.json")) as f:
-        #     meta = json.load(f)
+        
         geojson_result = ndarrays_to_geojson({
             "lst": lst,
             "uhi": uhi,
