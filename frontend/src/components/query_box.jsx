@@ -13,9 +13,7 @@ export default function QueryBox({ onResult }) {
     setError(null);
 
     try {
-      const res = await axios.post("http://localhost:8000/analyze", {
-                  query,
-                });
+      const res = await axios.post(`${API_BASE}/analyze`, { query });
 
       // NEW: only pass run_id + text_output
       onResult({
