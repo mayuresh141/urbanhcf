@@ -8,6 +8,8 @@ import numpy as np
 import shutil
 import pickle
 import uuid
+from app.logger import logger
+import traceback
 from app.redis_client import redis_client
 from mcp_agent.mcp_service import UrbanHCFMCPService
 from app.geojson_utils import ndarrays_to_geojson, format_backend_response
@@ -42,17 +44,23 @@ async def analyze(request: QueryRequest):
     """
     Frontend → MCP → GeoJSON
     """
-    run_id = str(uuid.uuid4())
-    agent_result = await mcp_service.run_query(request.query, run_id)
-    
-    return {"run_id": run_id, "analysis": agent_result}
+    try:
+        run_id = str(uuid.uuid4())
+        logger.info(f"Analyze started | run_id={run_id}")
+        agent_result = await mcp_service.run_query(request.query, run_id)
+        logger.info(f"Analyze finished | run_id={run_id}")
+        return {"run_id": run_id, "analysis": agent_result}
+    except Exception as e:
+        logger.error("❌ Analyze failed")
+        logger.error(str(e))
+        logger.error(traceback.format_exc())
+        raise
 
 @app.get("/results/{run_id}")
 def get_results(run_id: str):
     try:
         payload_str = redis_client.get(f"uhi:{run_id}")
         payload = json.loads(payload_str)
-        print(payload.keys())
         lst = payload['lst']
         uhi = payload['uhi']
         counterfactual_uhi = payload['counterfactual_uhi']
