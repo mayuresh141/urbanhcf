@@ -8,7 +8,7 @@
         "mcp[cli]",
         "mcp",
         "run",
-        "backend/mcp/server//geocode.py"
+        "mcp_agent/server//geocode.py"
       ]
     }
 }

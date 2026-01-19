@@ -1,5 +1,4 @@
 import asyncio
-
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 
@@ -13,7 +12,7 @@ async def run_memory_chat():
     os.environ["GROQ_API_KEY"]=os.getenv("GROQ_API_KEY")
 
     # Config file path - change this to your config file
-    config_file = "backend/mcp/server/geocode.json"
+    config_file = "mcp_agent/server/geocode.json"
 
     print("Initializing chat...")
 

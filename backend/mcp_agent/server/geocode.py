@@ -1,5 +1,7 @@
 import sys
-sys.path.append("/Users/mayureshmuley/Desktop/Urban_hcf")
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from typing import Any
 import requests
