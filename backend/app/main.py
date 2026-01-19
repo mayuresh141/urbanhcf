@@ -17,7 +17,7 @@ mcp_service = UrbanHCFMCPService()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://urbanhcf.netlify.app/"],
+    allow_origins=["http://localhost:5173", "https://urbanhcf.netlify.app"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
