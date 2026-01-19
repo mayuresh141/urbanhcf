@@ -274,6 +274,7 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='n
         }
     except Exception as e:
         logger.error("❌ analyze_uhi_effect failed")
+        logger.error(str(e))
         logger.error(traceback.format_exc())
         raise
 
