@@ -9,7 +9,7 @@ from mcp.server.fastmcp import FastMCP
 from pyproj import Transformer
 import math
 import lightgbm as lgb
-from mcp.agents.counterfactual import apply_counterfactuals
+from mcp_agent.agents.counterfactual import apply_counterfactuals
 import numpy as np
 import pandas as pd
 import os

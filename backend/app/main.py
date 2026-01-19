@@ -9,7 +9,7 @@ import shutil
 import pickle
 import uuid
 from app.redis_client import redis_client
-from mcp.mcp_service import UrbanHCFMCPService
+from mcp_agent.mcp_service import UrbanHCFMCPService
 from app.geojson_utils import ndarrays_to_geojson, format_backend_response
 
 app = FastAPI()
