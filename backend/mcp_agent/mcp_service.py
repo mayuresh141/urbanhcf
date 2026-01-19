@@ -8,7 +8,7 @@ class UrbanHCFMCPService:
         load_dotenv()
         os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
 
-        config_file = "mcp/server/geocode.json"
+        config_file = "mcp_agent/server/geocode.json"
 
         self.client = MCPClient.from_config_file(config_file)
         self.llm = ChatGroq(model="openai/gpt-oss-120b")
