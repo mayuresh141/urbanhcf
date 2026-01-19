@@ -15,10 +15,3 @@ redis_client = redis.Redis(
     decode_responses=True,      # allows storing JSON/strings
     ssl=True if parsed.hostname != "localhost" else False  # SSL required for Render KV
 )
-
-# Optional: test connection on startup
-try:
-    redis_client.ping()
-    print(f"✅ Redis connected at {parsed.hostname}:{parsed.port}")
-except Exception as e:
-    print(f"⚠️ Redis connection failed: {e}")
