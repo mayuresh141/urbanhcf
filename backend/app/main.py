@@ -46,9 +46,7 @@ async def analyze(request: QueryRequest):
     """
     try:
         run_id = str(uuid.uuid4())
-        logger.info(f"Analyze started | run_id={run_id}")
         agent_result = await mcp_service.run_query(request.query, run_id)
-        logger.info(f"Analyze finished | run_id={run_id}")
         return {"run_id": run_id, "analysis": agent_result}
     except Exception as e:
         logger.error("❌ Analyze failed")

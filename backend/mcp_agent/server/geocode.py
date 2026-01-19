@@ -19,6 +19,13 @@ import json
 import pickle
 import shutil
 from app.redis_client import redis_client
+
+import logging
+import traceback
+
+logger = logging.getLogger("mcp.tools.analyze_uhi_effect")
+logger.setLevel(logging.DEBUG)
+
 # Initialize FastMCP server
 mcp = FastMCP("geocode")    
 model = lgb.Booster(model_file="models/lst_model.txt")
@@ -228,42 +235,47 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='n
             "delta_uhi":nd.array
         "bbox" : list(floats)
     """
-    bands_info, features_data, bbox = get_feature_info(lat, lon)
-    urb_mask_path = "data/Rural_mask_4326.tif"
+    try:
+        bands_info, features_data, bbox = get_feature_info(lat, lon)
+        urb_mask_path = "data/Rural_mask_4326.tif"
 
-    lst_base = run_lst_model(features_data, bands_info)
-    uhi_base = compute_uhi(lst_base['data'], urb_mask_path, bbox)
-    if cf_data:
-        cf_features = apply_counterfactuals(features_data, feature_name, change_value)
-        lst_cf = run_lst_model(cf_features, bands_info)
-        uhi_cf = compute_uhi(lst_cf['data'], urb_mask_path, bbox)
-        delta_uhi = uhi_cf - uhi_base
-    else:
-        uhi_cf = None
-        delta_uhi = None
-    
-    payload = {
-    "lst": lst_base['data'].tolist(),      # convert numpy arrays to lists
-    "uhi": uhi_base.tolist(),
-    "counterfactual_uhi": uhi_cf.tolist() if uhi_cf is not None else None,
-    "delta_uhi": delta_uhi.tolist() if delta_uhi is not None else None,      # scalar, ok
-    "bbox": bbox                           # dict, ok
-}
-    redis_client.setex(
-        f"uhi:{run_id}",
-        900,  # TTL = 15 minutes
-        json.dumps(payload)
-    )
+        lst_base = run_lst_model(features_data, bands_info)
+        uhi_base = compute_uhi(lst_base['data'], urb_mask_path, bbox)
+        if cf_data:
+            cf_features = apply_counterfactuals(features_data, feature_name, change_value)
+            lst_cf = run_lst_model(cf_features, bands_info)
+            uhi_cf = compute_uhi(lst_cf['data'], urb_mask_path, bbox)
+            delta_uhi = uhi_cf - uhi_base
+        else:
+            uhi_cf = None
+            delta_uhi = None
         
-    return {
-        "geojson": {
-            "lst": np.nanmean(lst_base['data']) if lst_base['data'] is not None else np.nan,
-            "uhi": np.nanmean(uhi_base) if uhi_base is not None else np.nan,
-            "counterfactual_uhi": np.nanmean(uhi_cf) if uhi_cf is not None else np.nan,
-            "delta_uhi": np.nanmean(delta_uhi) if delta_uhi is not None else np.nan
-        },
-        "bbox": bbox
+        payload = {
+        "lst": lst_base['data'].tolist(),      # convert numpy arrays to lists
+        "uhi": uhi_base.tolist(),
+        "counterfactual_uhi": uhi_cf.tolist() if uhi_cf is not None else None,
+        "delta_uhi": delta_uhi.tolist() if delta_uhi is not None else None,      # scalar, ok
+        "bbox": bbox                           # dict, ok
     }
+        redis_client.setex(
+            f"uhi:{run_id}",
+            900,  # TTL = 15 minutes
+            json.dumps(payload)
+        )
+            
+        return {
+            "geojson": {
+                "lst": np.nanmean(lst_base['data']) if lst_base['data'] is not None else np.nan,
+                "uhi": np.nanmean(uhi_base) if uhi_base is not None else np.nan,
+                "counterfactual_uhi": np.nanmean(uhi_cf) if uhi_cf is not None else np.nan,
+                "delta_uhi": np.nanmean(delta_uhi) if delta_uhi is not None else np.nan
+            },
+            "bbox": bbox
+        }
+    except Exception as e:
+        logger.error("❌ analyze_uhi_effect failed")
+        logger.error(traceback.format_exc())
+        raise
 
 
 def main():
