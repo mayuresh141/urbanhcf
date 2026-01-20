@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function QueryBox({ onResult }) {
@@ -8,22 +9,26 @@ export default function QueryBox({ onResult }) {
   const [error, setError] = useState(null);
 
   const runAnalysis = async () => {
-    if (!query.trim()) return;
+    const trimmed = query.trim();
+    if (!trimmed) return;
+
     setLoading(true);
     setError(null);
 
     try {
-      const res = await axios.post(`${API_BASE}/analyze`, { query });
+      const res = await axios.post(`${API_BASE}/analyze`, {
+        query: trimmed,
+      });
 
-      // NEW: only pass run_id + text_output
+      // ✅ Pass ONLY what backend actually returns
       onResult({
         run_id: res.data.run_id,
-        text_output: res.data.analysis || "",
+        text: res.data.analysis || "",
       });
 
     } catch (err) {
       console.error(err);
-      setError("Backend error");
+      setError("Failed to reach backend");
     } finally {
       setLoading(false);
     }
@@ -35,19 +40,30 @@ export default function QueryBox({ onResult }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Enter query..."
-        style={{ width: "100%", padding: "6px" }}
+        disabled={loading}
+        style={{
+          width: "100%",
+          padding: "6px",
+          opacity: loading ? 0.7 : 1,
+        }}
       />
 
       <button
         onClick={runAnalysis}
-        disabled={loading}
-        style={{ marginTop: "8px", width: "100%" }}
+        disabled={loading || !query.trim()}
+        style={{
+          marginTop: "8px",
+          width: "100%",
+          cursor: loading ? "not-allowed" : "pointer",
+        }}
       >
-        {loading ? "Running..." : "Run Analysis"}
+        {loading ? "Running analysis..." : "Run Analysis"}
       </button>
 
       {error && (
-        <p style={{ color: "red", fontSize: "12px" }}>{error}</p>
+        <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
+          {error}
+        </p>
       )}
     </div>
   );

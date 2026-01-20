@@ -4,6 +4,7 @@ import L from "leaflet";
 
 /** Sequential color for UHI / counterfactual / LST */
 function getUHIColor(v) {
+  if (typeof v !== "number") return "#ccc";
   return v > 4 ? "#800026" :
          v > 3 ? "#BD0026" :
          v > 1 ? "#E31A1C" :
@@ -13,6 +14,7 @@ function getUHIColor(v) {
 
 /** Diverging color for delta_uhi */
 function getDeltaColor(v) {
+  if (typeof v !== "number") return "#ccc";
   return v > 1 ? "#b2182b" :
          v > 0.5 ? "#ef8a62" :
          v > 0 ? "#fddbc7" :
@@ -34,6 +36,8 @@ function FitBounds({ geojson }) {
 
   return null;
 }
+
+/** Legend */
 function Legend({ activeLayer }) {
   let items = [];
   let title = "";
@@ -51,11 +55,11 @@ function Legend({ activeLayer }) {
   } else {
     title = activeLayer === "lst" ? "LST (relative)" : "UHI (°C)";
     items = [
-      { color: "#2C7BB6", label: "< 0 (Cooler)" },
-      { color: "#FC4E2A", label: "0–1 (Neutral)" },
-      { color: "#E31A1C", label: "1–3 (Mild urban heat)"},
-      { color: "#BD0026", label: "3–4 (Strong UHI)"},
-      { color: "#800026", label: ">4 (Extreme heat stress zones)" },
+      { color: "#2C7BB6", label: "< 0" },
+      { color: "#FC4E2A", label: "0–1" },
+      { color: "#E31A1C", label: "1–3" },
+      { color: "#BD0026", label: "3–4" },
+      { color: "#800026", label: "> 4" },
     ];
   }
 
@@ -69,8 +73,7 @@ function Legend({ activeLayer }) {
       padding: "8px",
       borderRadius: "6px",
       boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
-      fontSize: "12px",
-      lineHeight: "16px"
+      fontSize: "12px"
     }}>
       <b>{title}</b>
       <div style={{ marginTop: "6px" }}>
@@ -91,20 +94,18 @@ function Legend({ activeLayer }) {
   );
 }
 
-/** Main MapView component */
+/** Main MapView */
 export default function MapView({ geojson }) {
   const [activeLayer, setActiveLayer] = useState("uhi");
 
-  if (!geojson?.features || geojson.features.length === 0) return null;
+  const hasData = geojson?.features?.length > 0;
 
-  // style function depending on active layer
   const styleFn = (feature) => {
     const p = feature.properties ?? {};
 
     switch (activeLayer) {
       case "lst":
-        // Map LST to sequential colormap (example normalization)
-        const lstNorm = (p.lst ?? 300) - 300; // simple example
+        const lstNorm = (p.lst ?? 300) - 300;
         return {
           fillColor: getUHIColor(lstNorm / 5),
           fillOpacity: 0.7,
@@ -114,7 +115,7 @@ export default function MapView({ geojson }) {
 
       case "counterfactual_uhi":
         return {
-          fillColor: getUHIColor(p.counterfactual_uhi ?? 0),
+          fillColor: getUHIColor(p.counterfactual_uhi),
           fillOpacity: 0.7,
           color: "#444",
           weight: 0.3,
@@ -122,7 +123,7 @@ export default function MapView({ geojson }) {
 
       case "delta_uhi":
         return {
-          fillColor: getDeltaColor(p.delta_uhi ?? 0),
+          fillColor: getDeltaColor(p.delta_uhi),
           fillOpacity: 0.7,
           color: "#444",
           weight: 0.3,
@@ -131,7 +132,7 @@ export default function MapView({ geojson }) {
       case "uhi":
       default:
         return {
-          fillColor: getUHIColor(p.uhi ?? 0),
+          fillColor: getUHIColor(p.uhi),
           fillOpacity: 0.7,
           color: "#444",
           weight: 0.3,
@@ -139,12 +140,21 @@ export default function MapView({ geojson }) {
     }
   };
 
-  // safely format popup values
-  const formatValue = (v, suffix = "") => v != null ? v.toFixed(2) + suffix : "N/A";
+  const formatValue = (v, suffix = "") =>
+    typeof v === "number" ? v.toFixed(2) + suffix : "N/A";
 
   return (
-    <>
-      {/* Layer toggle buttons */}
+    <MapContainer
+      center={[34.05, -118.25]}
+      zoom={9}
+      style={{ height: "100%", width: "100%" }}
+    >
+      <TileLayer
+        attribution="© OpenStreetMap"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      {/* Layer toggles */}
       <div style={{
         position: "absolute",
         bottom: 20,
@@ -173,39 +183,28 @@ export default function MapView({ geojson }) {
         ))}
       </div>
 
-      {/* Legend */}
-      <Legend activeLayer={activeLayer} />
+      {/* Only render spatial layers if geojson exists */}
+      {hasData && (
+        <>
+          <FitBounds geojson={geojson} />
+          <Legend activeLayer={activeLayer} />
 
-      <MapContainer
-        center={[34.05, -118.25]}
-        zoom={9}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          attribution="© OpenStreetMap"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        {/* Auto-fit bounds on new GeoJSON */}
-        <FitBounds geojson={geojson} />
-
-        {/* GeoJSON layer */}
-        <GeoJSON
-          key={JSON.stringify(geojson)} // force remount on new data
-          data={geojson}
-          style={styleFn}
-          onEachFeature={(feature, layer) => {
-            const p = feature.properties ?? {};
-
-            layer.bindPopup(`
-              <b>LST:</b> ${formatValue(p.lst, " K")}<br/>
-              <b>UHI:</b> ${formatValue(p.uhi, " °C")}<br/>
-              <b>CF UHI:</b> ${formatValue(p.counterfactual_uhi, " °C")}<br/>
-              <b>ΔUHI:</b> ${formatValue(p.delta_uhi, " °C")}
-            `);
-          }}
-        />
-      </MapContainer>
-    </>
+          <GeoJSON
+            key={geojson.features.length}
+            data={geojson}
+            style={styleFn}
+            onEachFeature={(feature, layer) => {
+              const p = feature.properties ?? {};
+              layer.bindPopup(`
+                <b>LST:</b> ${formatValue(p.lst, " K")}<br/>
+                <b>UHI:</b> ${formatValue(p.uhi, " °C")}<br/>
+                <b>CF UHI:</b> ${formatValue(p.counterfactual_uhi, " °C")}<br/>
+                <b>ΔUHI:</b> ${formatValue(p.delta_uhi, " °C")}
+              `);
+            }}
+          />
+        </>
+      )}
+    </MapContainer>
   );
 }

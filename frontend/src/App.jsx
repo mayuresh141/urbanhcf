@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import QueryBox from "./components/query_box";
 import MapView from "./components/map_view";
 import sampleGeoJSON from "./data/sample_uhi.json";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function App() {
@@ -11,11 +12,16 @@ export default function App() {
   const [loadingMap, setLoadingMap] = useState(false);
 
   // Called after POST /analyze
-  const handleResult = ({ run_id, text_output }) => {
+  const handleResult = ({ run_id, text }) => {
+    // ✅ Always update text
+    setAnalysisText(text || "");
+
+    // ❗ Only trigger map polling if run_id exists
+    if (!run_id) return;
+
     setRunId(run_id);
-    setAnalysisText(text_output || "");
-    setGeojson(null); // clear previous map
     setLoadingMap(true);
+    setGeojson(null); // clear previous spatial result
   };
 
   // Load sample data for dev
@@ -32,7 +38,7 @@ export default function App() {
 
     let intervalId;
     const startTime = Date.now();
-    const maxPollingTime = 20000; // 20 seconds
+    const maxPollingTime = 20000; // 20s
 
     const fetchGeoJSON = async () => {
       try {
@@ -46,7 +52,6 @@ export default function App() {
           setLoadingMap(false);
           clearInterval(intervalId);
         } else if (Date.now() - startTime > maxPollingTime) {
-          // Stop polling after timeout
           setLoadingMap(false);
           clearInterval(intervalId);
           console.warn("Polling stopped: timeout reached");
@@ -70,7 +75,7 @@ export default function App() {
       <div style={styles.mapPane}>
         {loadingMap && (
           <div style={styles.mapOverlay}>
-            Computing counterfactual map… (will stop after 20s)
+            Computing counterfactual map… (auto-stops after 20s)
           </div>
         )}
         <MapView geojson={geojson} />
