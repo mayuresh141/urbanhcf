@@ -18,7 +18,7 @@ import os
 import json
 import pickle
 import shutil
-from app.redis_client import redis_client
+from app.redis_client import get_redis_client
 
 import logging
 import traceback
@@ -256,7 +256,8 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='n
         "counterfactual_uhi": uhi_cf.tolist() if uhi_cf is not None else None,
         "delta_uhi": delta_uhi.tolist() if delta_uhi is not None else None,      # scalar, ok
         "bbox": bbox                           # dict, ok
-    }
+         }
+        redis_client = get_redis_client()
         redis_client.setex(
             f"uhi:{run_id}",
             900,  # TTL = 15 minutes

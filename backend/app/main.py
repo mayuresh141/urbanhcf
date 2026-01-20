@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -10,7 +12,7 @@ import pickle
 import uuid
 from app.logger import logger
 import traceback
-from app.redis_client import redis_client
+from app.redis_client import get_redis_client
 from mcp_agent.mcp_service import UrbanHCFMCPService
 from app.geojson_utils import ndarrays_to_geojson, format_backend_response
 
@@ -57,6 +59,7 @@ async def analyze(request: QueryRequest):
 @app.get("/results/{run_id}")
 def get_results(run_id: str):
     try:
+        redis_client = get_redis_client()
         payload_str = redis_client.get(f"uhi:{run_id}")
         payload = json.loads(payload_str)
         lst = payload['lst']

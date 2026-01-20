@@ -1,21 +1,22 @@
 import os
 import redis
-from urllib.parse import urlparse
 import logging
-logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger("redis_client")
-# Get Redis connection URL
-REDIS_URL = os.environ.get("REDIS_URL")
-# REDIS_URL = "redis://localhost:6379"
-if not REDIS_URL:
-    raise RuntimeError(
-        "REDIS_URL is not set. "
-        "Redis is required for this service to run."
-    )
 
-logger.info(f"Using Redis URL: {REDIS_URL}")
+_redis_client = None
 
-redis_client = redis.StrictRedis.from_url(
-    REDIS_URL,
-    decode_responses=True
-)
+def get_redis_client():
+    global _redis_client
+
+    if _redis_client is None:
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        print("inside if loop", redis_url)
+        logger.info(f"Using Redis URL: {redis_url}")
+
+        _redis_client = redis.StrictRedis.from_url(
+            redis_url,
+            decode_responses=True
+        )
+
+    return _redis_client
