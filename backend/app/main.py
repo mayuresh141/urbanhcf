@@ -33,6 +33,15 @@ class QueryRequest(BaseModel):
 def health():
     return {"status": "ok"}
 
+@app.get("/redis_health")
+def redis_health():
+    try:
+        client = get_redis_client()
+        client.ping()
+        return {"status": "ok", "redis_url": os.getenv("REDIS_URL")}
+    except Exception as e:
+        return {"status": "fail", "error": str(e)}
+
 @app.get("/debug/mcp")
 async def debug_mcp():
     try:
