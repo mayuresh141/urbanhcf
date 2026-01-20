@@ -55,11 +55,11 @@ function Legend({ activeLayer }) {
   } else {
     title = activeLayer === "lst" ? "LST (relative)" : "UHI (°C)";
     items = [
-      { color: "#2C7BB6", label: "< 0" },
-      { color: "#FC4E2A", label: "0–1" },
-      { color: "#E31A1C", label: "1–3" },
-      { color: "#BD0026", label: "3–4" },
-      { color: "#800026", label: "> 4" },
+      { color: "#2C7BB6", label: "< 0 (Cooler)" },
+      { color: "#FC4E2A", label: "0–1 (Neutral)" },
+      { color: "#E31A1C", label: "1–3 (Mild urban heat)" },
+      { color: "#BD0026", label: "3–4 (Strong UHI)" },
+      { color: "#800026", label: "> 4 (Extreme heat stress zones)" },
     ];
   }
 

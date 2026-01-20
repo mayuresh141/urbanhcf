@@ -207,7 +207,7 @@ def save_numpy(path: str, array):
     np.save(path, array)
 
 @mcp.tool()
-def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='none', change_value: dict=None, cf_data:bool=False) -> dict:
+def analyze_uhi_effect(lat: float, lon: float, run_id: str, redis_url: str, feature_name: str='none', change_value: dict=None, cf_data:bool=False) -> dict:
     """
     This is the final tool, any valid result should be returned, no further calling needed.
     This tool is used to calculate the Urban Heat Island(UHI) effect
@@ -220,7 +220,8 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='n
     :param lat: latitude of the location
     :param lon: longitude of the location
     :param feature_name: name of the feature to modify
-    :param run_id: run id of the the job started .
+    :param run_id: run id of the the job started.
+    :param redis_url: the redis client url.
     change_value: None or {
             "type": "divide | "multiply",
             "value": percentage of change (e.g., 1.2 for 20% increase)
@@ -258,7 +259,7 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='n
         "bbox": bbox                           # dict, ok
          }
         print("redis url inside geocode", os.getenv("REDIS_URL"))
-        redis_client = get_redis_client(os.getenv("REDIS_URL"))
+        redis_client = get_redis_client(redis_url)
         redis_client.setex(
             f"uhi:{run_id}",
             900,  # TTL = 15 minutes

@@ -6,14 +6,14 @@ logger = logging.getLogger("redis_client")
 
 _redis_client = None
 
-def get_redis_client(redis_url=None):
+def get_redis_client(redis_url: str):
     global _redis_client
 
     if _redis_client is None:
-        redis_url = redis_url or os.getenv("REDIS_URL")
-        logger.info(f"Using Redis URL: {redis_url}")
         if not redis_url:
-            raise RuntimeError("REDIS_URL is not set")
+            raise RuntimeError("Redis URL was not provided")
+
+        logger.info(f"Using Redis URL: {redis_url}")
 
         _redis_client = redis.StrictRedis.from_url(
             redis_url,

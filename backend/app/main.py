@@ -16,6 +16,7 @@ from app.redis_client import get_redis_client
 from mcp_agent.mcp_service import UrbanHCFMCPService
 from app.geojson_utils import ndarrays_to_geojson, format_backend_response
 
+REDIS_URL = os.getenv("REDIS_URL")
 app = FastAPI()
 mcp_service = UrbanHCFMCPService()
 
@@ -36,7 +37,7 @@ def health():
 @app.get("/redis_health")
 def redis_health():
     try:
-        client = get_redis_client()
+        client = get_redis_client(REDIS_URL)
         client.ping()
         return {"status": "ok", "redis_url": os.getenv("REDIS_URL")}
     except Exception as e:
@@ -45,7 +46,7 @@ def redis_health():
 @app.get("/debug/mcp")
 async def debug_mcp():
     try:
-       agent_result = await mcp_service.run_query("what are lat lon irvine?", "")
+       agent_result = await mcp_service.run_query("what are lat lon irvine?", "", "")
        return {"result": agent_result}
     except Exception as e:
         return {"error": str(e)}
@@ -57,7 +58,7 @@ async def analyze(request: QueryRequest):
     """
     try:
         run_id = str(uuid.uuid4())
-        agent_result = await mcp_service.run_query(request.query, run_id)
+        agent_result = await mcp_service.run_query(request.query, run_id, redis_url=REDIS_URL)
         return {"run_id": run_id, "analysis": agent_result}
     except Exception as e:
         logger.error("❌ Analyze failed")
@@ -68,7 +69,7 @@ async def analyze(request: QueryRequest):
 @app.get("/results/{run_id}")
 def get_results(run_id: str):
     try:
-        redis_client = get_redis_client()
+        redis_client = get_redis_client(REDIS_URL)
         payload_str = redis_client.get(f"uhi:{run_id}")
         payload = json.loads(payload_str)
         lst = payload['lst']
