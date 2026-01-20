@@ -257,7 +257,8 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, feature_name: str='n
         "delta_uhi": delta_uhi.tolist() if delta_uhi is not None else None,      # scalar, ok
         "bbox": bbox                           # dict, ok
          }
-        redis_client = get_redis_client()
+        print("redis url inside geocode", os.getenv("REDIS_URL"))
+        redis_client = get_redis_client(os.getenv("REDIS_URL"))
         redis_client.setex(
             f"uhi:{run_id}",
             900,  # TTL = 15 minutes
