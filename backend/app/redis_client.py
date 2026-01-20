@@ -4,6 +4,8 @@ import logging
 
 logger = logging.getLogger("redis_client")
 
+_redis_client = None
+
 def get_redis_client(redis_url=None):
     global _redis_client
 
