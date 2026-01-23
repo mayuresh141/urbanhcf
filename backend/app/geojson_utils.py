@@ -7,7 +7,7 @@ def ndarrays_to_geojson(data_dict):
 
     lst = np.array(data_dict.get("lst"))
     uhi = np.array(data_dict.get("uhi"))
-    counterfactual_uhi = data_dict.get("ndcounterfactual_uhi")
+    counterfactual_uhi = data_dict.get("counterfactual_uhi")
     if counterfactual_uhi is not None:
         counterfactual_uhi = np.array(counterfactual_uhi)
     delta_uhi = data_dict.get("delta_uhi")

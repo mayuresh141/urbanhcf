@@ -61,7 +61,7 @@ async def analyze(request: QueryRequest):
         agent_result = await mcp_service.run_query(request.query, run_id, redis_url=REDIS_URL)
         return {"run_id": run_id, "analysis": agent_result}
     except Exception as e:
-        logger.error("❌ Analyze failed")
+        logger.error("Analyze failed")
         logger.error(str(e))
         logger.error(traceback.format_exc())
         raise

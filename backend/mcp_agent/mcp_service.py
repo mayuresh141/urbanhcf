@@ -24,8 +24,16 @@ class UrbanHCFMCPService:
         """
         Run a single MCP query (used by FastAPI)
         """
-        response = await self.agent.run(f"{query} [run_id={run_id}] [redis_url={redis_url}]")
-        # response = await self.agent.run(query, context={"run_id": run_id, "redis_url": redis_url})
+        summary_prompt = """You are explaining Urban Heat Island analysis results to a general user.
+        Rules:
+        - Max 5-6 bullet points
+        - Plain English
+        - No system details
+        - No IDs, Redis, tools, or model names
+        - Mention counterfactuals only if present
+        - you can explain why this happens, or can improve it.
+        """
+        response = await self.agent.run(f"{query} [run_id={run_id}] [redis_url={redis_url} [summary prompt={summary_prompt}]]")
         return response
 
     async def shutdown(self):

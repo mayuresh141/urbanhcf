@@ -28,10 +28,10 @@ logger.setLevel(logging.DEBUG)
 
 # Initialize FastMCP server
 mcp = FastMCP("geocode")    
-model = lgb.Booster(model_file="models/lst_model.txt")
+model = lgb.Booster(model_file="models/lst_model_500m.txt")
 
 
-def bbox_from_point(lat, lon, buffer_km=5):
+def bbox_from_point(lat, lon, buffer_km=3):
 
     lat_buffer = buffer_km / 111.0
     lon_buffer = buffer_km / (111.0 * math.cos(math.radians(lat)))
@@ -139,14 +139,16 @@ def get_geometry(location: str):
         "admin1": loc.get("admin1")
     }
 
-def bbox_from_latlon(lat: float, lon: float, buffer_km: float = 5) -> Any:
-    # Increase buffer by 2, if the  compute_urban_mean_lst fails
+@mcp.tool()
+def bbox_from_latlon(lat: float, lon: float, buffer_km: float = 3) -> Any:
+    
     return bbox_from_point(lat, lon, buffer_km)
 
 @mcp.tool()
 def get_feature_info(lat: float, lon: float) -> Any:
     # Example feature info retrieval (mocked for demonstration)
-    tif_path = "data/LA_NDVI_SPH_2022_2023.tif"
+    # tif_path = "data/LA_NDVI_SPH_2022_2023.tif"
+    tif_path = "data/feature_data_500m.tif"
     bbox_dict = bbox_from_latlon(lat, lon)
     bbox = bbox_dict['coordinates']
     with rasterio.open(tif_path) as src:
@@ -216,7 +218,10 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, redis_url: str, feat
     This will return the UHI data for that region. If no feature name to
     modify is provided, it will only return the baseline UHI data and cf_data will be False.
     For eg: if feature name and change_value is None, then only cf_data= and change_value is None.
-    
+    For feature_name map them to the following:
+    EVI: green cover, vegetation, plantation etc.
+    impervious_descriptor: Buildings, concrete, built-up etc. 
+
     :param lat: latitude of the location
     :param lon: longitude of the location
     :param feature_name: name of the feature to modify
@@ -238,7 +243,7 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, redis_url: str, feat
     """
     try:
         bands_info, features_data, bbox = get_feature_info(lat, lon)
-        urb_mask_path = "data/Rural_mask_4326.tif"
+        urb_mask_path = "data/Rural_mask_500m.tif"
 
         lst_base = run_lst_model(features_data, bands_info)
         uhi_base = compute_uhi(lst_base['data'], urb_mask_path, bbox)

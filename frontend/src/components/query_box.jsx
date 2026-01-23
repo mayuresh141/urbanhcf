@@ -6,65 +6,104 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 export default function QueryBox({ onResult }) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+
+  const exampleQueries = [
+    "Analyze UHI for Irvine",
+    "What if green cover increased in Pasadena by 10%?",
+    "How would reducing concrete affect UHI in LA?",
+    "Explain UHI in simple terms",
+  ];
 
   const runAnalysis = async () => {
-    const trimmed = query.trim();
-    if (!trimmed) return;
+    if (!query.trim()) return;
 
     setLoading(true);
-    setError(null);
-
     try {
-      const res = await axios.post(`${API_BASE}/analyze`, {
-        query: trimmed,
-      });
+      const res = await axios.post(`${API_BASE}/analyze`, { query });
 
-      // ✅ Pass ONLY what backend actually returns
       onResult({
-        run_id: res.data.run_id,
-        text: res.data.analysis || "",
+        run_id: res.data?.run_id || null,
+        text: res.data?.analysis || "",
       });
-
     } catch (err) {
-      console.error(err);
-      setError("Failed to reach backend");
+      onResult({
+        run_id: null,
+        text: "Error processing query. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ marginTop: "16px" }}>
-      <input
+    <div>
+      <textarea
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Enter query..."
-        disabled={loading}
-        style={{
-          width: "100%",
-          padding: "6px",
-          opacity: loading ? 0.7 : 1,
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault(); // prevent newline
+            runAnalysis();
+          }
         }}
+        placeholder="Ask a question about urban heat islands..."
+        rows={3}
+        style={styles.textarea}
       />
 
       <button
         onClick={runAnalysis}
-        disabled={loading || !query.trim()}
-        style={{
-          marginTop: "8px",
-          width: "100%",
-          cursor: loading ? "not-allowed" : "pointer",
-        }}
+        disabled={loading}
+        style={styles.button}
       >
-        {loading ? "Running analysis..." : "Run Analysis"}
+        {loading ? "Analyzing..." : "Analyze"}
       </button>
 
-      {error && (
-        <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
-          {error}
-        </p>
-      )}
+      {/* Example Queries */}
+      <div style={styles.examples}>
+        <div style={styles.examplesTitle}>Try examples:</div>
+        {exampleQueries.map((q, i) => (
+          <div
+            key={i}
+            style={styles.exampleItem}
+            onClick={() => setQuery(q)}
+          >
+            {q}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
+
+const styles = {
+  textarea: {
+    width: "100%",
+    padding: "8px",
+    fontSize: "13px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    resize: "none",
+  },
+  button: {
+    marginTop: "8px",
+    width: "100%",
+    padding: "8px",
+    fontSize: "13px",
+    cursor: "pointer",
+  },
+  examples: {
+    marginTop: "12px",
+    fontSize: "12px",
+    color: "#555",
+  },
+  examplesTitle: {
+    marginBottom: "6px",
+    fontWeight: "bold",
+  },
+  exampleItem: {
+    cursor: "pointer",
+    marginBottom: "4px",
+    color: "#2563eb",
+  },
+};

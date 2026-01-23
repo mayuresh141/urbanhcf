@@ -75,7 +75,7 @@ export default function App() {
       <div style={styles.mapPane}>
         {loadingMap && (
           <div style={styles.mapOverlay}>
-            Computing counterfactual map… (auto-stops after 20s)
+            Computing counterfactual map…
           </div>
         )}
         <MapView geojson={geojson} />
@@ -84,8 +84,25 @@ export default function App() {
       {/* SIDEBAR */}
       <div style={styles.sidePane}>
         <h3>UrbanHCF</h3>
-        <p style={{ fontSize: "14px", color: "#555" }}>
-          Query urban heat island scenarios using satellite data and counterfactual analysis.
+        {/* Scope badge */}
+        <div style={{
+          fontSize: "11px",
+          color: "#444",
+          background: "#eee",
+          padding: "4px 8px",
+          borderRadius: "4px",
+          display: "inline-block",
+          marginBottom: "8px"
+        }}>
+          📍 Scope: Greater Los Angeles region (LA County & Orange County)
+        </div>
+        <p style={{ fontSize: "13px", color: "#555", lineHeight: "1.4" }}>
+            Urban Heat Island (UHI) refers to cities being warmer than surrounding rural
+            areas due to buildings, roads, and limited vegetation.
+            <br />
+            This tool analyzes UHI patterns and supports
+            <b> counterfactual “what-if” scenarios</b> such as increasing green cover or
+            reducing built-up areas.
         </p>
 
         <QueryBox onResult={handleResult} />
