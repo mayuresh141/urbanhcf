@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import QueryBox from "./components/query_box";
 import MapView from "./components/map_view";
 import sampleGeoJSON from "./data/sample_uhi.json";
+import ReactMarkdown from "react-markdown";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -94,7 +95,7 @@ export default function App() {
           display: "inline-block",
           marginBottom: "8px"
         }}>
-          📍 Scope: Greater Los Angeles region (LA County & Orange County)
+          📍 Scope: Greater Los Angeles Region (LA County & Orange County)
         </div>
         <p style={{ fontSize: "13px", color: "#555", lineHeight: "1.4" }}>
             Urban Heat Island (UHI) refers to cities being warmer than surrounding rural
@@ -110,7 +111,24 @@ export default function App() {
         {analysisText && (
           <div style={styles.infoBox}>
             <h4>Analysis Summary</h4>
-            <p>{analysisText}</p>
+
+            <ReactMarkdown
+              components={{
+                li: ({ children }) => (
+                  <li style={{ marginBottom: "8px", lineHeight: "1.5" }}>
+                    {children}
+                  </li>
+                ),
+                strong: ({ children }) => (
+                  <strong style={{ color: "#333" }}>{children}</strong>
+                ),
+                p: ({ children }) => (
+                  <p style={{ marginBottom: "8px" }}>{children}</p>
+                ),
+              }}
+            >
+              {analysisText}
+            </ReactMarkdown>
           </div>
         )}
       </div>

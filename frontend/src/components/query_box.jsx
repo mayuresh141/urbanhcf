@@ -37,6 +37,19 @@ export default function QueryBox({ onResult }) {
 
   return (
     <div>
+      {/* Example Queries */}
+      <div style={styles.examples}>
+        <div style={styles.examplesTitle}>Try examples:</div>
+        {exampleQueries.map((q, i) => (
+          <div
+            key={i}
+            style={styles.exampleItem}
+            onClick={() => setQuery(q)}
+          >
+            {q}
+          </div>
+        ))}
+      </div>
       <textarea
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -58,27 +71,13 @@ export default function QueryBox({ onResult }) {
       >
         {loading ? "Analyzing..." : "Analyze"}
       </button>
-
-      {/* Example Queries */}
-      <div style={styles.examples}>
-        <div style={styles.examplesTitle}>Try examples:</div>
-        {exampleQueries.map((q, i) => (
-          <div
-            key={i}
-            style={styles.exampleItem}
-            onClick={() => setQuery(q)}
-          >
-            {q}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
 
 const styles = {
   textarea: {
-    width: "100%",
+    width: "96%",
     padding: "8px",
     fontSize: "13px",
     borderRadius: "4px",
