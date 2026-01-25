@@ -71,6 +71,19 @@ export default function QueryBox({ onResult }) {
       >
         {loading ? "Analyzing..." : "Analyze"}
       </button>
+      {/* Cold start note – only while loading */}
+      {loading && (
+        <p
+          style={{
+            marginTop: "6px",
+            fontSize: "11px",
+            color: "#666",
+            lineHeight: "1.4",
+          }}
+        >
+          ⏱️ First query may take 2–3 minutes while the server starts (free-tier cold start).
+        </p>
+      )}
     </div>
   );
 }
