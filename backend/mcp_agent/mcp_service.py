@@ -17,7 +17,7 @@ class UrbanHCFMCPService:
             llm=self.llm,
             client=self.client,
             max_steps=15,
-            memory_enabled=True,
+            memory_enabled=False,
         )
 
     async def run_query(self, query: str, run_id: str, redis_url:str):
@@ -26,7 +26,7 @@ class UrbanHCFMCPService:
         """
         summary_prompt = """You are explaining Urban Heat Island analysis results to a general user.
         Rules:
-        - Max 5-6 bullet points
+        - Max 4-5 bullet points
         - Plain English
         - No system details
         - No IDs, Redis, tools, or model names

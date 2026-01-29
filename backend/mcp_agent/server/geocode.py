@@ -139,7 +139,6 @@ def get_geometry(location: str):
         "admin1": loc.get("admin1")
     }
 
-@mcp.tool()
 def bbox_from_latlon(lat: float, lon: float, buffer_km: float = 3) -> Any:
     
     return bbox_from_point(lat, lon, buffer_km)
@@ -221,17 +220,21 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, redis_url: str, feat
     For feature_name map them to the following:
     EVI: green cover, vegetation, plantation etc.
     impervious_descriptor: Buildings, concrete, built-up etc. 
-
+    forecast_albedo: albedo, reflectivity etc
+    built_height: building height etc
+    pr: rainfall, precipitation etc
+    sph: humidity, moisture etc
+    
     :param lat: latitude of the location
     :param lon: longitude of the location
     :param feature_name: name of the feature to modify
     :param run_id: run id of the the job started.
     :param redis_url: the redis client url.
     change_value: None or {
-            "type": "divide | "multiply",
+            "type": "divide or "multiply",
             "value": percentage of change (e.g., 1.2 for 20% increase)
         }
-        :param cf_data: True if counterfactual data is available(e.g., feature_name and change_value provided)
+    :param cf_data: True if counterfactual data is available(e.g., feature_name and change_value provided)
     Returns:
     dict:
         "geojson":
@@ -267,7 +270,7 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, redis_url: str, feat
         redis_client = get_redis_client(redis_url)
         redis_client.setex(
             f"uhi:{run_id}",
-            900,  # TTL = 15 minutes
+            300,  # TTL = 5 minutes
             json.dumps(payload)
         )
             
@@ -290,7 +293,6 @@ def analyze_uhi_effect(lat: float, lon: float, run_id: str, redis_url: str, feat
 def main():
     # Initialize and run the server
     mcp.run(transport="stdio")
-    # mcp.run(host="127.0.0.1", port=5000)
 
 
 if __name__ == "__main__":

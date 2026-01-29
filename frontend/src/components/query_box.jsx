@@ -71,6 +71,23 @@ export default function QueryBox({ onResult }) {
       >
         {loading ? "Analyzing..." : "Analyze"}
       </button>
+      <p
+      style={{
+        marginTop: "6px",
+        fontSize: "12px",
+        color: "#666",
+        textAlign: "center",
+        lineHeight: "1.4",
+        background: "#f5f7fa",
+        padding: "6px 8px",
+        borderRadius: "6px",
+      }}
+    >
+      New here?{" "}
+      <span style={{ fontWeight: 500 }}>
+        Click <b>How to use</b> on the map for guidance.
+      </span>
+    </p>
       {/* Cold start note – only while loading */}
       {loading && (
         <p

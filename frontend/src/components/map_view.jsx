@@ -86,13 +86,14 @@ function HelpPanel({ onClose }) {
         surface temperature and counterfactual reasoning.
       </p>
 
-      <p>Urban Heat Island (UHI) values indicate how much warmer a location is compared to nearby rural areas (in °C). 
-        Higher values represent stronger urban heat effects and greater heat stress. You can ask questions and run counterfactual scenarios
-        to explore how different interventions could improve thermal conditions in the city.</p>
+      <p>UHI values indicate how much warmer a location is compared to nearby rural areas (in °C).
+      Higher values represent stronger urban heat effects and greater heat stress. 
+      You can ask questions and run "what-if" scenarios to explore how different interventions could improve thermal conditions in the city. 
+      Try changing factors like building height, surface moisture, vegetation, and surface reflectivity.</p>
 
       <b>How to use</b>
       <ul>
-        <li>Enter a natural language query (e.g. increasing green cover).</li>
+        <li>Enter a natural language query (e.g. UHI in Anaheim, if vegetation is increased by 10%).</li>
         <li>The system simulates a counterfactual scenario.</li>
         <li>Results appear as spatial layers on the map(if mentioned).</li>
         <li>Click on any block on the map to see detailed values for that location.</li>
@@ -206,22 +207,26 @@ export default function MapView({ geojson }) {
 
       {/* Help icon */}
       <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1400 }}>
-        <button
-          onClick={() => setShowHelp(!showHelp)}
-          title="Help"
-          style={{
-            width: "28px",
-            height: "28px",
-            borderRadius: "50%",
-            border: "1px solid #aaa",
-            background: "white",
-            cursor: "pointer",
-            fontWeight: "bold"
-          }}
-        >
-          ?
-        </button>
-      </div>
+      <button
+        onClick={() => setShowHelp(!showHelp)}
+        title="How to use UrbanHCF"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          padding: "6px 12px",
+          borderRadius: "16px",
+          border: "1px solid #aaa",
+          background: "white",
+          cursor: "pointer",
+          fontSize: "12px",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.25)"
+        }}
+      >
+        <span style={{ fontWeight: "bold" }}>ℹ</span>
+        How to use
+      </button>
+    </div>
 
       {showHelp && <HelpPanel onClose={() => setShowHelp(false)} />}
 

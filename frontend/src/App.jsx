@@ -95,7 +95,7 @@ export default function App() {
           display: "inline-block",
           marginBottom: "8px"
         }}>
-          📍 Scope: Greater Los Angeles Region (LA County & Orange County)
+          📍 Scope: Southern California (LA County & Orange County)
         </div>
         <p style={{ fontSize: "13px", color: "#555", lineHeight: "1.4" }}>
             Urban Heat Island (UHI) refers to cities being warmer than surrounding rural
