@@ -12,17 +12,24 @@ export default function App() {
   const [geojson, setGeojson] = useState(null);
   const [loadingMap, setLoadingMap] = useState(false);
 
+  // ✅ mobile detection
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   // Called after POST /analyze
   const handleResult = ({ run_id, text }) => {
-    // ✅ Always update text
     setAnalysisText(text || "");
 
-    // ❗ Only trigger map polling if run_id exists
     if (!run_id) return;
 
     setRunId(run_id);
     setLoadingMap(true);
-    setGeojson(null); // clear previous spatial result
+    setGeojson(null);
   };
 
   // Load sample data for dev
@@ -39,7 +46,7 @@ export default function App() {
 
     let intervalId;
     const startTime = Date.now();
-    const maxPollingTime = 20000; // 20s
+    const maxPollingTime = 20000;
 
     const fetchGeoJSON = async () => {
       try {
@@ -57,7 +64,7 @@ export default function App() {
           clearInterval(intervalId);
           console.warn("Polling stopped: timeout reached");
         }
-      } catch (err) {
+      } catch {
         if (Date.now() - startTime > maxPollingTime) {
           setLoadingMap(false);
           clearInterval(intervalId);
@@ -71,9 +78,20 @@ export default function App() {
   }, [runId]);
 
   return (
-    <div style={styles.container}>
+    <div
+      style={{
+        ...styles.container,
+        flexDirection: isMobile ? "column" : "row",
+      }}
+    >
       {/* MAP */}
-      <div style={styles.mapPane}>
+      <div
+        style={{
+          ...styles.mapPane,
+          flex: isMobile ? "none" : 3,
+          height: isMobile ? "55vh" : "auto",
+        }}
+      >
         {loadingMap && (
           <div style={styles.mapOverlay}>
             Computing counterfactual map…
@@ -83,27 +101,40 @@ export default function App() {
       </div>
 
       {/* SIDEBAR */}
-      <div style={styles.sidePane}>
+      <div
+        style={{
+          ...styles.sidePane,
+          flex: isMobile ? "none" : 1,
+          height: isMobile ? "45vh" : "auto",
+          borderLeft: isMobile ? "none" : "1px solid #ddd",
+          borderTop: isMobile ? "1px solid #ddd" : "none",
+        }}
+      >
         <h3>UrbanHCF</h3>
+
         {/* Scope badge */}
-        <div style={{
-          fontSize: "11px",
-          color: "#444",
-          background: "#eee",
-          padding: "4px 8px",
-          borderRadius: "4px",
-          display: "inline-block",
-          marginBottom: "8px"
-        }}>
+        <div
+          style={{
+            fontSize: "11px",
+            color: "#444",
+            background: "#eee",
+            padding: "4px 8px",
+            borderRadius: "4px",
+            display: "inline-block",
+            marginBottom: "8px",
+          }}
+        >
           📍 Scope: Southern California (LA County & Orange County)
         </div>
+
         <p style={{ fontSize: "13px", color: "#555", lineHeight: "1.4" }}>
-            Urban Heat Island (UHI) refers to cities being warmer than surrounding rural
-            areas due to buildings, roads, and limited vegetation.
-            <br />
-            This tool analyzes UHI patterns and supports
-            <b> counterfactual “what-if” scenarios</b> such as increasing green cover or
-            reducing built-up areas.
+          Urban Heat Island (UHI) refers to cities being warmer than
+          surrounding rural areas due to buildings, roads, and limited
+          vegetation.
+          <br />
+          This tool analyzes UHI patterns and supports
+          <b> counterfactual “what-if” scenarios</b> such as increasing green
+          cover or reducing built-up areas.
         </p>
 
         <QueryBox onResult={handleResult} />
@@ -143,7 +174,6 @@ const styles = {
     width: "100vw",
   },
   mapPane: {
-    flex: 3,
     position: "relative",
   },
   mapOverlay: {
@@ -157,9 +187,7 @@ const styles = {
     fontSize: "12px",
   },
   sidePane: {
-    flex: 1,
     padding: "16px",
-    borderLeft: "1px solid #ddd",
     backgroundColor: "#fafafa",
     overflowY: "auto",
   },
